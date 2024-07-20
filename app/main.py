@@ -1,8 +1,11 @@
+import time
 from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 from pydantic import BaseModel
 from typing import Optional
 from random import randrange
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 app = FastAPI()
 
@@ -10,17 +13,19 @@ class Post(BaseModel):
     title: str
     content: str
 
+while True:
+    try:
+        conn = psycopg2.connect(host='localhost', database='fastApi', user='postgres', password='1003', cursor_factory=RealDictCursor)
+        cursor = conn.cursor()
+        print("Database succesfull!!")
+        break
+    except Exception as error:
+        print("Database faled!")
+        print("Error: ", error)
+        time.sleep(4)
+    
 myPosts = [
-    {
-        "title": "post 1",
-        "content": "content1",
-        "id": 0
-    },
-    {
-        "title": "post 2",
-        "content": "content2",
-        "id": 1
-    }
+    
 ]
 
 def findPost(postList, id):
@@ -40,7 +45,10 @@ async def say_hello(name: str):
 
 @app.get("/post")
 async def getPosts():
-    return {"data": myPosts}
+    cursor.execute("""SELECT * FROM posts""")
+    posts = cursor.fetchall()
+    print(posts)
+    return {"data": posts}
 
 @app.post("/post", status_code=status.HTTP_201_CREATED)
 async def createPost(post: Post):
