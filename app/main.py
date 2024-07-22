@@ -52,37 +52,41 @@ async def getPosts():
 
 @app.post("/post", status_code=status.HTTP_201_CREATED)
 async def createPost(post: Post):
-    newPost = post.model_dump()
-    newPost['id'] = randrange(0, int(1e9))
-    myPosts.append(newPost)
-    print(myPosts)
-    return {"message": "Succes!"}
+    cursor.execute("""INSERT INTO posts (title, content) VALUES (%s, %s) RETURNING * """,
+                   (post.title, post.content))
+    newPost = cursor.fetchone()
+    conn.commit()
+    return {"message": newPost}
 
 @app.get("/post/{id}")
 async def getPost(id: int):
-    post = findPost(myPosts, id)
+    cursor.execute("""SELECT * FROM posts WHERE id = %s """, (str(id)))
+    post = cursor.fetchone()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Not found post with {id}!")
-        # response.status_code = status.HTTP_404_NOT_FOUND
-        # return {"message": f"Not found post with {id}!"}
-    print(post)
     return post
 
 @app.delete("/post/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def deletePost(id: int):
-    post = findPost(myPosts, id)
+    cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING * """, (str(id)))
+    post = cursor.fetchone()
+    conn.commit()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Not found post with {id}!")
-    myPosts.remove(post)
     return {"message": "Succes!"}
 
 @app.put("/post/{id}")
 async def updatePost(id: int, newPost: Post):
-    for post in myPosts:
-        if id == post['id']:
-            post = newPost
-            return {"message": "Succes!"}
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"Not found post with {id}!")
+    cursor.execute("""UPDATE posts 
+                   SET title = %s, content = %s 
+                   WHERE id = %s 
+                   RETURNING *""", 
+                   (newPost.title, newPost.content, str(id)))
+    post = cursor.fetchone()
+    conn.commit()
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Not found post with {id}!")
+    return {"message": "Succes!"}
