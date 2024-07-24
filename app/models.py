@@ -11,7 +11,7 @@ class Post(Base):
     title = Column(String, nullable=False)
     content = Column(String, nullable=False)
 
-
+    
 class User(Base):
     __tablename__ = "users"
 

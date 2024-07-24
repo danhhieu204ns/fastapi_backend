@@ -86,3 +86,12 @@ async def updatePost(id: int, newPost: schemas.PostCreate, db: Session = Depends
     post.update(newPost.dict(), synchronize_session=False)
     db.commit()
     return post.first()
+
+@app.post("/register", status_code=status.HTTP_201_CREATED, response_model=schemas.UserCreate)
+async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    newUser = models.User(**user.dict())
+    db.add(newUser)
+    db.commit()
+    db.refresh(newUser)
+    return newUser
+

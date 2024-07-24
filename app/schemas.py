@@ -13,3 +13,7 @@ class Post(BaseModel):
     
     class Config:
         orm_mode = True
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
