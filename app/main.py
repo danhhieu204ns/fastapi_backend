@@ -5,7 +5,7 @@ from typing import Optional, List
 from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from . import models, schemas
+from . import models, schemas, utils
 from .database import engine, get_db
 from sqlalchemy.orm import Session
 
@@ -35,7 +35,7 @@ async def getPosts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return posts
 
-@app.get("/post/{id}")
+@app.get("/post/{id}", response_model=schemas.Post)
 async def getPost(id: int, db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM posts WHERE id = %s """, (str(id)))
     # post = cursor.fetchone()
@@ -87,8 +87,9 @@ async def updatePost(id: int, newPost: schemas.PostCreate, db: Session = Depends
     db.commit()
     return post.first()
 
-@app.post("/register", status_code=status.HTTP_201_CREATED, response_model=schemas.UserCreate)
+@app.post("/register", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
 async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    user.password = utils.hash(user.password)
     newUser = models.User(**user.dict())
     db.add(newUser)
     db.commit()
