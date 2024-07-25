@@ -24,4 +24,3 @@ async def get_user_byid(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Not found user with id = {id}")
     return user
-
