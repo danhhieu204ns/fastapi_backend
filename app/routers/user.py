@@ -3,7 +3,9 @@ from .. import models, schemas, utils
 from ..database import engine, get_db
 from sqlalchemy.orm import Session
 
-router = APIRouter()
+router = APIRouter(
+    prefix= "/user"
+)
 
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
 async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -14,7 +16,7 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(newUser)
     return newUser
 
-@router.get("/user/{id}", response_model=schemas.UserResponse)
+@router.get("/{id}", response_model=schemas.UserResponse)
 async def get_user_byid(id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
