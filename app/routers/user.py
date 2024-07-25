@@ -4,7 +4,8 @@ from ..database import engine, get_db
 from sqlalchemy.orm import Session
 
 router = APIRouter(
-    prefix= "/user"
+    prefix= "/user",
+    tags=["Users"]
 )
 
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
@@ -23,3 +24,4 @@ async def get_user_byid(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Not found user with id = {id}")
     return user
+
