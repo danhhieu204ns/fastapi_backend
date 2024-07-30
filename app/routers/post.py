@@ -9,12 +9,12 @@ router = APIRouter(
     tags=["Posts"]
 )
 
-@router.get("/", response_model=List[schemas.Post])
+@router.get("/", response_model=List[schemas.PostResponse])
 async def getPosts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     posts = db.query(models.Post).all()
     return posts
 
-@router.get("/{id}", response_model=schemas.Post)
+@router.get("/{id}", response_model=schemas.PostResponse)
 async def getPost(id: int, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
@@ -22,13 +22,12 @@ async def getPost(id: int, db: Session = Depends(get_db)):
                             detail=f"Not found post with {id}!")
     return post
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
 async def createPost(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    newPost = models.Post(**post.dict())
+    newPost = models.Post(**post.dict(), owner_id=current_user.id)
     db.add(newPost)
     db.commit()
     db.refresh(newPost)
-    print(current_user.email)
     return newPost
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -41,7 +40,7 @@ async def deletePost(id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Succes!"}
 
-@router.put("/{id}", response_model=schemas.Post)
+@router.put("/{id}", response_model=schemas.PostResponse)
 async def updatePost(id: int, newPost: schemas.PostCreate, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id)
     if not post.first():

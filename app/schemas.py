@@ -2,16 +2,14 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 
-class PostBase(BaseModel):
+class PostCreate(BaseModel):
     title: str
     content: str
 
-class PostCreate(PostBase):
-    pass
-
-class Post(BaseModel):
+class PostResponse(BaseModel):
     title: str
     content: str
+    owner_id: int
     
     class Config:
         orm_mode = True
