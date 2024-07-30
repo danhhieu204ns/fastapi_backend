@@ -10,8 +10,9 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=List[schemas.Post])
-async def getPosts(db: Session = Depends(get_db), get_current_user: int = Depends(oauth2.get_current_user)):
+async def getPosts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     posts = db.query(models.Post).all()
+    
     return posts
 
 @router.get("/{id}", response_model=schemas.Post)
@@ -23,11 +24,12 @@ async def getPost(id: int, db: Session = Depends(get_db)):
     return post
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
-async def createPost(post: schemas.PostCreate, db: Session = Depends(get_db)):
+async def createPost(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     newPost = models.Post(**post.dict())
     db.add(newPost)
     db.commit()
     db.refresh(newPost)
+    print(current_user.email)
     return newPost
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
