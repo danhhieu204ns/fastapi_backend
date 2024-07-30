@@ -1,7 +1,8 @@
 from .database import Base
 from sqlalchemy import Column, Integer, String, text, ForeignKey
 from sqlalchemy.sql.sqltypes import TIMESTAMP
-import time
+from sqlalchemy.orm import relationship
+
 
 class Post(Base):
     __tablename__ = "posts"
@@ -10,6 +11,8 @@ class Post(Base):
     title = Column(String, nullable=False)
     content = Column(String, nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+
+    owner = relationship("User")
 
     
 class User(Base):
