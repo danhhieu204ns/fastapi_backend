@@ -1,6 +1,5 @@
 from .database import Base
 from sqlalchemy import Column, Integer, String, text
-from sqlalchemy.sql.expression import null
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 import time
 
