@@ -1,5 +1,5 @@
 from .database import Base
-from sqlalchemy import Column, Integer, String, text
+from sqlalchemy import Column, Integer, String, text, ForeignKey
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 import time
 
@@ -9,6 +9,7 @@ class Post(Base):
     id = Column(Integer, primary_key=True, nullable=False)
     title = Column(String, nullable=False)
     content = Column(String, nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     
 class User(Base):
