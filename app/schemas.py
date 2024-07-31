@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
 
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
@@ -19,6 +20,7 @@ class PostCreate(BaseModel):
     content: str
 
 class PostResponse(BaseModel):
+    id: int
     title: str
     content: str
     owner_id: int
@@ -34,3 +36,7 @@ class Token(BaseModel):
 
 class Tokendata(BaseModel):
     id: Optional[int] = None
+
+class VoteCreate(BaseModel):
+    post_id: int
+    dir: int
