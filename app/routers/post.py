@@ -16,6 +16,7 @@ async def getPosts(db: Session = Depends(get_db),
                    search: Optional[str] = ''):
     
     posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    print(search)
     return posts
 
 @router.get("/{id}", response_model=schemas.PostResponse)
