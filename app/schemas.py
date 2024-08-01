@@ -30,6 +30,13 @@ class PostResponse(BaseModel):
     class Config:
         orm_mode = True
 
+class PostVoteResponse(BaseModel):
+    Post: PostResponse
+    vote: int
+
+    class Config:
+        orm_mode = True
+
 class Token(BaseModel):
     access_token: str
     token_type: str

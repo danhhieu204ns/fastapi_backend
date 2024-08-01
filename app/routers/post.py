@@ -3,26 +3,30 @@ from typing import List, Optional
 from .. import models, schemas, oauth2
 from ..database import get_db
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 router = APIRouter(
     prefix="/post",
     tags=["Posts"]
 )
 
-@router.get("/", response_model=List[schemas.PostResponse])
+@router.get("/", response_model=List[schemas.PostVoteResponse])
 async def getPosts(db: Session = Depends(get_db), 
                    limit: int = 5, 
                    skip: int = 0, 
                    search: Optional[str] = ''):
     
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    print(search)
+    # posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
+    posts = posts.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
+    posts = posts.filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+
     return posts
 
 @router.get("/{id}", response_model=schemas.PostResponse)
 async def getPost(id: int, 
                   db: Session = Depends(get_db),
-                  current_user: int = Depends(oauth2.get_current_user)):
+                  current_user = Depends(oauth2.get_current_user)):
     
     post = db.query(models.Post).filter(models.Post.id == id).first()
 
@@ -38,7 +42,7 @@ async def getPost(id: int,
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
 async def createPost(post: schemas.PostCreate, 
                      db: Session = Depends(get_db), 
-                     current_user: int = Depends(oauth2.get_current_user)):
+                     current_user = Depends(oauth2.get_current_user)):
     
     newPost = models.Post(**post.dict(), owner_id=current_user.id)
     db.add(newPost)
@@ -49,7 +53,7 @@ async def createPost(post: schemas.PostCreate,
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def deletePost(id: int, 
                      db: Session = Depends(get_db), 
-                     current_user: int = Depends(oauth2.get_current_user)):
+                     current_user = Depends(oauth2.get_current_user)):
     
     post = db.query(models.Post).filter(models.Post.id == id)
 
@@ -69,7 +73,7 @@ async def deletePost(id: int,
 async def updatePost(id: int, 
                      newPost: schemas.PostCreate, 
                      db: Session = Depends(get_db), 
-                     current_user: int = Depends(oauth2.get_current_user)):
+                     current_user = Depends(oauth2.get_current_user)):
     
     post = db.query(models.Post).filter(models.Post.id == id)
 
