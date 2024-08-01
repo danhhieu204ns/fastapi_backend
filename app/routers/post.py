@@ -23,18 +23,21 @@ async def getPosts(db: Session = Depends(get_db),
 
     return posts
 
-@router.get("/{id}", response_model=schemas.PostResponse)
+@router.get("/{id}", response_model=schemas.PostVoteResponse)
 async def getPost(id: int, 
                   db: Session = Depends(get_db),
                   current_user = Depends(oauth2.get_current_user)):
     
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    # post = db.query(models.Post).filter(models.Post.id == id).first()
+    post = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
+    post = post.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
+    post = post.filter(models.Post.id == id).first()
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Not found post with {id}!")
     
-    if post.owner_id != current_user.id:
+    if post.Post.owner_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not alowed post with {id}!")
     return post
