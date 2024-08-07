@@ -37,3 +37,17 @@ async def getgroup(id: int,
                             detail=f"Not allowed group with {id}!")
     
     return group
+
+@router.post("/", 
+             status_code=status.HTTP_201_CREATED, 
+             response_model=schemas.GroupResponse)
+async def createGroup(group: schemas.GroupCreate, 
+                     db: Session = Depends(database.get_db), 
+                     current_user = Depends(oauth2.get_current_user)):
+
+    new_group = models.Group(**group.dict(), admin_id=current_user.id)
+    db.add(new_group)
+    db.commit()
+    db.refresh(new_group)
+
+    return new_group
