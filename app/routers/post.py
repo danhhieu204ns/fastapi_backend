@@ -52,6 +52,11 @@ async def createPost(post: schemas.PostCreate,
                      db: Session = Depends(get_db), 
                      current_user = Depends(oauth2.get_current_user)):
     
+    group = db.query(models.Group).filter(models.Group.id == post.group_id).first()
+    if not group:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Group with id = {post.group_id} is not exist!!")
+
     newPost = models.Post(**post.dict(), owner_id=current_user.id)
     db.add(newPost)
     db.commit()
