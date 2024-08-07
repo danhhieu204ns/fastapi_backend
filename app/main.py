@@ -1,15 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from . import models
-from .database import engine
 from .routers import post, user, auth, vote
 
-# models.Base.metadata.create_all(bind=engine)
+#sqlalchemy check if table has already exist, if not exist then create a new table
+#alembic check if table, column has already exist, if not exist then create a new table, new column
+
 
 app = FastAPI()
 
 origins = [
-    'https://www.google.com.vn'
+    'http://localhost:3000'
 ]
 
 app.add_middleware(

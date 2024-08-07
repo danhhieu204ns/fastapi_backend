@@ -10,7 +10,8 @@ router = APIRouter(
     tags=["Posts"]
 )
 
-@router.get("/", response_model=List[schemas.PostVoteResponse])
+@router.get("/", 
+            response_model=List[schemas.PostVoteResponse])
 async def getPosts(db: Session = Depends(get_db), 
                    limit: int = 5, 
                    skip: int = 0, 
@@ -23,7 +24,8 @@ async def getPosts(db: Session = Depends(get_db),
 
     return posts
 
-@router.get("/{id}", response_model=schemas.PostVoteResponse)
+@router.get("/{id}", 
+            response_model=schemas.PostVoteResponse)
 async def getPost(id: int, 
                   db: Session = Depends(get_db),
                   current_user = Depends(oauth2.get_current_user)):
@@ -40,9 +42,12 @@ async def getPost(id: int,
     if post.Post.owner_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not alowed post with {id}!")
+    
     return post
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
+@router.post("/", 
+             status_code=status.HTTP_201_CREATED, 
+             response_model=schemas.PostResponse)
 async def createPost(post: schemas.PostCreate, 
                      db: Session = Depends(get_db), 
                      current_user = Depends(oauth2.get_current_user)):
@@ -51,9 +56,11 @@ async def createPost(post: schemas.PostCreate,
     db.add(newPost)
     db.commit()
     db.refresh(newPost)
+
     return newPost
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", 
+               status_code=status.HTTP_204_NO_CONTENT)
 async def deletePost(id: int, 
                      db: Session = Depends(get_db), 
                      current_user = Depends(oauth2.get_current_user)):
@@ -70,9 +77,11 @@ async def deletePost(id: int,
     
     post.delete(synchronize_session=False)
     db.commit()
+
     return {"message": "Succes!"}
 
-@router.put("/{id}", response_model=schemas.PostResponse)
+@router.put("/{id}", 
+            response_model=schemas.PostResponse)
 async def updatePost(id: int, 
                      newPost: schemas.PostCreate, 
                      db: Session = Depends(get_db), 
@@ -90,4 +99,5 @@ async def updatePost(id: int,
     
     post.update(newPost.dict(), synchronize_session=False)
     db.commit()
+    
     return post.first()

@@ -3,21 +3,33 @@ from typing import Optional
 from datetime import datetime
 
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class Tokendata(BaseModel):
+    id: Optional[int] = None
+
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
+
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
-    create_at: datetime
+    created_at: datetime
     
     class Config:
         orm_mode = True
 
+
 class PostCreate(BaseModel):
     title: str
     content: str
+
 
 class PostResponse(BaseModel):
     id: int
@@ -30,6 +42,7 @@ class PostResponse(BaseModel):
     class Config:
         orm_mode = True
 
+
 class PostVoteResponse(BaseModel):
     Post: PostResponse
     vote: int
@@ -37,12 +50,6 @@ class PostVoteResponse(BaseModel):
     class Config:
         orm_mode = True
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class Tokendata(BaseModel):
-    id: Optional[int] = None
 
 class VoteCreate(BaseModel):
     post_id: int

@@ -3,3 +3,4 @@ venv/
 .env
 alembic
 .idea
+.vercel
