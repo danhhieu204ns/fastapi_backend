@@ -59,3 +59,13 @@ class PostVoteResponse(BaseModel):
 class VoteCreate(BaseModel):
     post_id: int
     dir: int
+
+
+class GroupResponse(BaseModel):
+    id: int
+    name: str
+    created_at: datetime
+    admin_id: int
+    
+    class Config:
+        orm_mode = True
