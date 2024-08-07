@@ -15,6 +15,10 @@ class Tokendata(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    name: str
+    age: Optional[int] = None
+    address: Optional[str] = None
+    phone_number: Optional[str] = None
 
 
 class UserResponse(BaseModel):
@@ -29,6 +33,7 @@ class UserResponse(BaseModel):
 class PostCreate(BaseModel):
     title: str
     content: str
+    group_id: int
 
 
 class PostResponse(BaseModel):
