@@ -61,11 +61,14 @@ class VoteCreate(BaseModel):
     dir: int
 
 
+class GroupCreate(BaseModel):
+    name: str
+
+
 class GroupResponse(BaseModel):
     id: int
     name: str
     created_at: datetime
-    admin_id: int
     
     class Config:
         orm_mode = True

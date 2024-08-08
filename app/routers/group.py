@@ -32,10 +32,6 @@ async def getgroup(id: int,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Not found group with {id}!")
     
-    if group.admin_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f"Not allowed group with {id}!")
-    
     return group
 
 @router.post("/", 
@@ -45,9 +41,11 @@ async def createGroup(group: schemas.GroupCreate,
                      db: Session = Depends(database.get_db), 
                      current_user = Depends(oauth2.get_current_user)):
 
-    new_group = models.Group(**group.dict(), admin_id=current_user.id)
-    db.add(new_group)
+    new_group = models.Group(**group.dict())
+    admin = models.Admin(user_id = current_user, group_id = new_group.id)
+    db.add(new_group, admin)
     db.commit()
     db.refresh(new_group)
 
     return new_group
+
