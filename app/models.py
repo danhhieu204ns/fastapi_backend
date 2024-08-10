@@ -30,21 +30,13 @@ class Member(Base):
 
     id = Column(Integer, primary_key=True, nullable=False)
     status = Column(String, nullable=False)
+    role = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
-    group_id = Column(Integer, ForeignKey("groups.id", ondelete="CASCADE"))
-
-
-class Admin(Base):
-    __tablename__ = "admins"
-
-    id = Column(Integer, primary_key=True, nullable=False)
-    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
-
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
-    group_id = Column(Integer, ForeignKey("groups.id", ondelete="CASCADE"))
-
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    group_id = Column(Integer, ForeignKey("groups.id", ondelete="CASCADE"), nullable=False)
+    inviter_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    
 
 class Post(Base):
     __tablename__ = "posts"
@@ -57,7 +49,7 @@ class Post(Base):
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
     group_id = Column(Integer, ForeignKey("groups.id", ondelete="CASCADE"), nullable=True)
-    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     owner = relationship("User")
 
@@ -68,8 +60,8 @@ class Vote(Base):
     id = Column(Integer, primary_key=True, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
-    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"))
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
 
 class Comment(Base):
@@ -79,6 +71,6 @@ class Comment(Base):
     content = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
-    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"))
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 

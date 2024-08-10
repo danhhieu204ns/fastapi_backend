@@ -72,3 +72,26 @@ class GroupResponse(BaseModel):
     
     class Config:
         orm_mode = True
+
+
+class MemberInviteCreate(BaseModel):
+    user_id: int
+    group_id: int
+
+class MemberInviteResponse(BaseModel):
+    id: int
+    user_id: int
+    group_id: int
+    inviter_id: int
+    status: str
+
+    class Config:
+        orm_mode = True
+
+
+class MemberHandle(BaseModel):
+    user_id: int
+    group_id: int
+    status: str
+
+
