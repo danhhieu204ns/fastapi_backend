@@ -1,5 +1,5 @@
 from .database import Base
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, text
+from sqlalchemy import Column, Integer, String, Boolean, Date, ForeignKey, text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.orm import relationship
 
@@ -11,6 +11,7 @@ class User(Base):
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
     name = Column(String, nullable=False)
+    date_of_birth = Column(Date, nullable=True)
     age = Column(Integer, nullable=True)
     address = Column(String, nullable=True)
     phone_number = Column(String, nullable=True)
