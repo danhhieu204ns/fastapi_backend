@@ -33,14 +33,16 @@ class UserResponse(BaseModel):
 class PostCreate(BaseModel):
     title: str
     content: str
+    privacy: str
     group_id: int
 
 
-class PostResponse(BaseModel):
+class Postbase(BaseModel):
     id: int
     title: str
     content: str
-    owner_id: int
+    group_id: int
+    status: Optional[str]
 
     owner: UserResponse
     
@@ -49,7 +51,7 @@ class PostResponse(BaseModel):
 
 
 class PostVoteResponse(BaseModel):
-    Post: PostResponse
+    Post: Postbase
     vote: int
 
     class Config:

@@ -4,25 +4,101 @@ from .. import models, schemas, oauth2
 from ..database import get_db
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+import threading
+from concurrent.futures import ThreadPoolExecutor
+import asyncio
 
 router = APIRouter(
     prefix="/post",
     tags=["Posts"]
 )
 
-@router.get("/", 
-            response_model=List[schemas.PostVoteResponse])
-async def getPosts(db: Session = Depends(get_db), 
-                   limit: int = 5, 
-                   skip: int = 0, 
-                   search: Optional[str] = ''):
-    
-    # posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+def fetch_data_in_thread(db: Session, start: int, end: int, result: list):
     posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
     posts = posts.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
-    posts = posts.filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    posts = posts.filter(models.Post.id >= start, models.Post.id < end)
+    
+    result.extend(posts.all())
 
-    return posts
+@router.get("/", response_model=List[schemas.PostVoteResponse])
+async def get_posts(db: Session = Depends(get_db)):
+    num_threads = 10
+
+    try:
+        num_records = db.query(func.count(models.Post.id)).scalar()
+        if num_records == 0:
+            return []
+
+        records_per_thread = num_records // num_threads
+        threads = []
+        results = [[] for _ in range(num_threads)]
+        
+        for i in range(num_threads):
+            start = i * records_per_thread
+            end = min((i + 1) * records_per_thread, num_records)
+            thread = threading.Thread(target=fetch_data_in_thread, args=(db, start, end, results[i]))
+            threads.append(thread)
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        flattened_results = [item for sublist in results for item in sublist]
+        return flattened_results
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
+
+# async def fetch_data_in_thread(db: Session, start: int, end: int):
+#     posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
+#     posts = posts.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
+#     posts = posts.filter(models.Post.id >= start,
+#                          models.Post.id < end)
+    
+#     with ThreadPoolExecutor() as executor:
+#         future = executor.submit(db.execute, posts)
+#         result = future.result()
+#         rows = result.fetchall()
+#         return rows
+
+# @router.get("/", 
+#             response_model=List[schemas.PostVoteResponse])
+# async def get_posts(db: Session = Depends(get_db)):
+#     num_threads = 5
+
+#     try:
+#         num_records = db.query(func.count(models.Post.id)).scalar()
+#         if num_records == 0:
+#             return []
+
+#         records_per_thread = num_records // num_threads
+#         tasks = []
+#         for i in range(num_threads):
+#             start = i * records_per_thread
+#             end = min((i + 1) * records_per_thread, num_records)
+#             task = asyncio.create_task(fetch_data_in_thread(db, start, end))
+#             tasks.append(task)
+
+#         results = await asyncio.gather(*tasks)
+#         flattened_results = [item for sublist in results for item in sublist]
+#         return flattened_results
+
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
+
+
+# @router.get("/", 
+#             response_model=List[schemas.PostVoteResponse])
+# async def getPosts(db: Session = Depends(get_db), 
+#                    limit: int = 100, 
+#                    skip: int = 0, 
+#                    search: Optional[str] = ''):
+    
+#     posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
+#     posts = posts.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
+#     posts = posts.filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+
+#     return posts
 
 @router.get("/{id}", 
             response_model=schemas.PostVoteResponse)
@@ -47,20 +123,19 @@ async def getPost(id: int,
 
 @router.post("/", 
              status_code=status.HTTP_201_CREATED, 
-             response_model=schemas.PostResponse)
-async def createPost(post: schemas.PostCreate, 
+             response_model=schemas.Postbase)
+async def createPost(post_create: schemas.PostCreate, 
                      db: Session = Depends(get_db), 
                      current_user = Depends(oauth2.get_current_user)):
     
-    group = db.query(models.Group).filter(models.Group.id == post.group_id).first()
+    group = db.query(models.Group).filter(models.Group.id == post_create.group_id).first()
     if not group:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Group with id = {post.group_id} is not exist!!")
+                            detail=f"Group with id = {post_create.group_id} is not exist!!")
 
-    newPost = models.Post(**post.dict(), owner_id=current_user.id)
+    newPost = models.Post(**post_create.dict(), user_id=current_user.id)
     db.add(newPost)
     db.commit()
-    db.refresh(newPost)
 
     return newPost
 
@@ -86,7 +161,7 @@ async def deletePost(id: int,
     return {"message": "Succes!"}
 
 @router.put("/{id}", 
-            response_model=schemas.PostResponse)
+            response_model=schemas.Postbase)
 async def updatePost(id: int, 
                      newPost: schemas.PostCreate, 
                      db: Session = Depends(get_db), 
@@ -98,7 +173,7 @@ async def updatePost(id: int,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Not found post with {id}!")
     
-    if post.first().owner_id != current_user.id:
+    if post.first().user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not alowwed post with {id}!")
     
