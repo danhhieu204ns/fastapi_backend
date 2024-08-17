@@ -2,6 +2,7 @@ from .database import Base
 from sqlalchemy import Column, Integer, String, Boolean, Date, ForeignKey, text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.orm import relationship
+from datetime import datetime
 
 
 class User(Base):
@@ -16,6 +17,24 @@ class User(Base):
     address = Column(String, nullable=True)
     phone_number = Column(String, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+
+    @staticmethod
+    def calculate_age(birth_date):
+        today = datetime.now().date()
+        age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+        return age
+
+    @classmethod
+    def update_age(cls, instance):
+        instance.age = cls.calculate_age(instance.date_of_birth)
+
+    @classmethod
+    def before_insert(cls, mapper, connection, target):
+        cls.update_age(target)
+
+    @classmethod
+    def before_update(cls, mapper, connection, target):
+        cls.update_age(target)
 
 
 class Group(Base):

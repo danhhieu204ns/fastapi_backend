@@ -1,12 +1,17 @@
 from fastapi import status, HTTPException, APIRouter, Depends
 from .. import models, schemas, utils, database
 from sqlalchemy.orm import Session
+from sqlalchemy import event
+from datetime import datetime, date
 import re
 
 router = APIRouter(
     prefix= "/user",
     tags=["Users"]
 )
+
+event.listen(models.User, 'before_insert', models.User.before_insert)
+event.listen(models.User, 'before_update', models.User.before_update)
 
 @router.post("/register", 
              status_code=status.HTTP_201_CREATED, 
@@ -38,6 +43,9 @@ async def create_user(user: schemas.UserCreate,
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', user.password):
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail=f"Password must contain at least one special character.")
+    # date_format = "%Y-%m-%d"
+
+    # age = utils.calculate_age(user.date_of_birth, date.today())
 
     user.password = utils.hash(user.password)
     newUser = models.User(**user.dict())
