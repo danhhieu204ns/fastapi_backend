@@ -1,4 +1,5 @@
-from fastapi import status, HTTPException, Depends, APIRouter
+from fastapi import status, HTTPException, Depends, APIRouter, File, UploadFile
+from fastapi.responses import HTMLResponse
 from typing import List, Optional
 from .. import models, schemas, oauth2
 from ..database import get_db
@@ -133,6 +134,16 @@ async def createPost(post_create: schemas.PostCreate,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Group with id = {post_create.group_id} is not exist!!")
 
+    user = db.query(models.Member).filter(models.Member.group_id == post_create.group_id, 
+                                          models.Member.user_id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                            detail="You are not a member of this group!")
+    
+    if user.status != "accepted":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                            detail="You are not accepted to this group!")
+
     newPost = models.Post(**post_create.dict(), user_id=current_user.id)
     db.add(newPost)
     db.commit()
@@ -181,3 +192,22 @@ async def updatePost(id: int,
     db.commit()
     
     return post.first()
+
+@router.post("/upload/")
+async def upload_file(file: UploadFile = File(...)):
+    contents = await file.read()
+    # Bạn có thể xử lý file ở đây (ví dụ: lưu vào đĩa, đọc nội dung, v.v.)
+    return {"filename": file.filename, 
+            "content": contents}
+
+@router.get("/")
+async def main():
+    content = """
+    <body>
+    <form action="/upload/" enctype="multipart/form-data" method="post">
+    <input name="file" type="file">
+    <input type="submit">
+    </form>
+    </body>
+    """
+    return HTMLResponse(content)
