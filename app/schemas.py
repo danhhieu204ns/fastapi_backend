@@ -20,6 +20,11 @@ class UserCreate(BaseModel):
     address: Optional[str] = None
     phone_number: Optional[str] = None
 
+class UserUpdate(BaseModel):
+    name: str
+    date_of_birth: Optional[date] = None
+    address: Optional[str] = None
+    phone_number: Optional[str] = None
 
 class UserResponse(BaseModel):
     id: int

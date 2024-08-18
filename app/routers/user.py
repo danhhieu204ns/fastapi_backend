@@ -1,5 +1,5 @@
 from fastapi import status, HTTPException, APIRouter, Depends
-from .. import models, schemas, utils, database
+from .. import models, schemas, utils, database, oauth2
 from sqlalchemy.orm import Session
 from sqlalchemy import event
 from datetime import datetime, date
@@ -43,8 +43,8 @@ async def create_user(user: schemas.UserCreate,
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', user.password):
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail=f"Password must contain at least one special character.")
+    
     # date_format = "%Y-%m-%d"
-
     # age = utils.calculate_age(user.date_of_birth, date.today())
 
     user.password = utils.hash(user.password)
@@ -65,5 +65,26 @@ async def get_user_byid(id: int,
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Not found user with id = {id}")
+    
+    return user
+
+
+@router.put("/", 
+            response_model=schemas.UserResponse)
+async def updateUser(newUser: schemas.UserUpdate, 
+                     db: Session = Depends(database.get_db), 
+                     current_user = Depends(oauth2.get_current_user)):
+
+    user = db.query(models.User).filter(models.User.id == current_user.id).first()
+
+    for key, value in newUser.dict().items():
+        setattr(user, key, value)
+    
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    # user.update(newUser.dict(), synchronize_session=False)
+    # db.commit()
     
     return user

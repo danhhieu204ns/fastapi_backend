@@ -34,6 +34,7 @@ class User(Base):
 
     @classmethod
     def before_update(cls, mapper, connection, target):
+        print("update")
         cls.update_age(target)
 
 
