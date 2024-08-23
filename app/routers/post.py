@@ -8,47 +8,49 @@ from sqlalchemy import func
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
+import os
+from fastapi.responses import FileResponse
 
 router = APIRouter(
     prefix="/post",
     tags=["Posts"]
 )
 
-def fetch_data_in_thread(db: Session, start: int, end: int, result: list):
-    posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
-    posts = posts.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
-    posts = posts.filter(models.Post.id >= start, models.Post.id < end)
+# def fetch_data_in_thread(db: Session, start: int, end: int, result: list):
+#     posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
+#     posts = posts.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
+#     posts = posts.filter(models.Post.id >= start, models.Post.id < end)
     
-    result.extend(posts.all())
+#     result.extend(posts.all())
 
-@router.get("/", response_model=List[schemas.PostVoteResponse])
-async def get_posts(db: Session = Depends(get_db)):
-    num_threads = 10
+# @router.get("/", response_model=List[schemas.PostVoteResponse])
+# async def get_posts(db: Session = Depends(get_db)):
+#     num_threads = 10
 
-    try:
-        num_records = db.query(func.count(models.Post.id)).scalar()
-        if num_records == 0:
-            return []
+#     try:
+#         num_records = db.query(func.count(models.Post.id)).scalar()
+#         if num_records == 0:
+#             return []
 
-        records_per_thread = num_records // num_threads
-        threads = []
-        results = [[] for _ in range(num_threads)]
+#         records_per_thread = num_records // num_threads
+#         threads = []
+#         results = [[] for _ in range(num_threads)]
         
-        for i in range(num_threads):
-            start = i * records_per_thread
-            end = min((i + 1) * records_per_thread, num_records)
-            thread = threading.Thread(target=fetch_data_in_thread, args=(db, start, end, results[i]))
-            threads.append(thread)
-            thread.start()
+#         for i in range(num_threads):
+#             start = i * records_per_thread
+#             end = min((i + 1) * records_per_thread, num_records)
+#             thread = threading.Thread(target=fetch_data_in_thread, args=(db, start, end, results[i]))
+#             threads.append(thread)
+#             thread.start()
 
-        for thread in threads:
-            thread.join()
+#         for thread in threads:
+#             thread.join()
 
-        flattened_results = [item for sublist in results for item in sublist]
-        return flattened_results
+#         flattened_results = [item for sublist in results for item in sublist]
+#         return flattened_results
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
 
 # async def fetch_data_in_thread(db: Session, start: int, end: int):
 #     posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
@@ -88,18 +90,18 @@ async def get_posts(db: Session = Depends(get_db)):
 #         raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
 
 
-# @router.get("/", 
-#             response_model=List[schemas.PostVoteResponse])
-# async def getPosts(db: Session = Depends(get_db), 
-#                    limit: int = 100, 
-#                    skip: int = 0, 
-#                    search: Optional[str] = ''):
+@router.get("/", 
+            response_model=List[schemas.PostVoteResponse])
+async def getPosts(db: Session = Depends(get_db), 
+                   limit: int = 100, 
+                   skip: int = 0, 
+                   search: Optional[str] = ''):
     
-#     posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
-#     posts = posts.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
-#     posts = posts.filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
+    posts = posts.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
+    posts = posts.filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
 
-#     return posts
+    return posts
 
 @router.get("/{id}", 
             response_model=schemas.PostVoteResponse)
@@ -194,20 +196,38 @@ async def updatePost(id: int,
     return post.first()
 
 @router.post("/upload/")
-async def upload_file(file: UploadFile = File(...)):
-    contents = await file.read()
-    # Bạn có thể xử lý file ở đây (ví dụ: lưu vào đĩa, đọc nội dung, v.v.)
-    return {"filename": file.filename, 
-            "content": contents}
+async def upload_file(file: UploadFile = File(...), 
+                      db: Session = Depends(get_db), 
+                      current_user = Depends(oauth2.get_current_user)):
 
-@router.get("/")
-async def main():
-    content = """
-    <body>
-    <form action="/upload/" enctype="multipart/form-data" method="post">
-    <input name="file" type="file">
-    <input type="submit">
-    </form>
-    </body>
-    """
-    return HTMLResponse(content)
+    UPLOAD_DIRECTORY = os.path.abspath("./files/")
+
+    if not os.path.exists(UPLOAD_DIRECTORY):
+        os.makedirs(UPLOAD_DIRECTORY)
+
+    file_location = os.path.join(UPLOAD_DIRECTORY, file.filename)
+
+    with open(file_location, "wb") as f:
+        f.write(await file.read())
+
+    new_file = models.File(path=file_location, 
+                           user_id=current_user.id, 
+                           name=file.filename)
+    
+    db.add(new_file)
+    db.commit()
+
+    return {"filename": file.filename, 
+            "status": "accepted!"}
+
+@router.get("/download/")
+async def download_file(db: Session = Depends(get_db), 
+                      current_user = Depends(oauth2.get_current_user)):
+
+    file = db.query(models.File).first()
+
+    if not file:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Not found!")
+    
+    return FileResponse(file.path)

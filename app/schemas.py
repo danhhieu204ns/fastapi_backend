@@ -32,7 +32,7 @@ class UserResponse(BaseModel):
     created_at: datetime
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PostCreate(BaseModel):
@@ -53,7 +53,7 @@ class Postbase(BaseModel):
     owner: UserResponse
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PostVoteResponse(BaseModel):
@@ -61,7 +61,7 @@ class PostVoteResponse(BaseModel):
     vote: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class VoteCreate(BaseModel):
@@ -79,7 +79,7 @@ class GroupResponse(BaseModel):
     created_at: datetime
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class MemberInviteCreate(BaseModel):
@@ -94,7 +94,7 @@ class MemberInviteResponse(BaseModel):
     status: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class MemberHandle(BaseModel):
