@@ -74,6 +74,7 @@ class Post(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     owner = relationship("User")
+    group = relationship("Group")
 
 
 class Vote(Base):

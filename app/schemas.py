@@ -39,40 +39,6 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
-class PostCreate(BaseModel):
-    title: str
-    content: str
-    privacy: str
-    group_id: int
-    status: str
-
-
-class Postbase(BaseModel):
-    id: int
-    title: str
-    content: str
-    group_id: int
-    status: Optional[str]
-
-    owner: UserResponse
-    
-    class Config:
-        from_attributes = True
-
-
-class PostVoteResponse(BaseModel):
-    Post: Postbase
-    vote: int
-
-    class Config:
-        from_attributes = True
-
-
-class VoteCreate(BaseModel):
-    post_id: int
-    dir: int
-
-
 class GroupCreate(BaseModel):
     name: str
 
@@ -112,5 +78,40 @@ class MemberResponse(BaseModel):
 class MemberHandle(BaseModel):
     id: int
     status: str
+
+
+class PostCreate(BaseModel):
+    title: str
+    content: str
+    privacy: str
+    group_id: int
+    status: str
+
+
+class Postbase(BaseModel):
+    id: int
+    title: str
+    content: str
+    status: Optional[str]
+
+    owner: UserResponse
+    group: GroupResponse
+    
+    class Config:
+        from_attributes = True
+
+
+class PostVoteResponse(BaseModel):
+    Post: Postbase
+    vote: int
+
+    class Config:
+        from_attributes = True
+
+
+class VoteCreate(BaseModel):
+    post_id: int
+    dir: int
+
 
 

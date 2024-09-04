@@ -23,19 +23,20 @@ router = APIRouter(
     # return post.get_posts(db)
 
 
-@router.get("/", 
-            response_model=List[schemas.PostVoteResponse])
-async def getPosts(db: Session = Depends(get_db), 
-                   limit: int = 100, 
-                   skip: int = 0, 
-                   search: Optional[str] = ''):
+@router.get("/myposts", 
+            response_model=List[schemas.Postbase])
+async def get_my_post(db: Session = Depends(get_db), 
+                      limit: int = 100, 
+                      skip: int = 0, 
+                      search: Optional[str] = '',
+                      current_user = Depends(oauth2.get_current_user)):
     
-    return post.getPosts(db, limit, skip, search)
+    return post.get_my_post(db, limit, skip, search, current_user)
 
 
 @router.get("/{id}", 
             response_model=schemas.PostVoteResponse)
-async def getPost(id: int, 
+async def get_post_in_group(id: int, 
                   db: Session = Depends(get_db),
                   current_user = Depends(oauth2.get_current_user)):
     
@@ -45,11 +46,11 @@ async def getPost(id: int,
 @router.post("/", 
              status_code=status.HTTP_201_CREATED, 
              response_model=schemas.Postbase)
-async def createPost(post_create: schemas.PostCreate, 
+async def create_post(post_create: schemas.PostCreate, 
                      db: Session = Depends(get_db), 
                      current_user = Depends(oauth2.get_current_user)):
 
-    return post.createPost(post_create, db, current_user)
+    return post.create_post(post_create, db, current_user)
 
 
 @router.delete("/{id}", 
