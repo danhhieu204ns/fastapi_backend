@@ -27,10 +27,18 @@ async def get_user_byid(id: int,
     return user.get_user_byid(id, db)
 
 
-@router.put("/", 
+@router.put("/update_info", 
             response_model=schemas.UserResponse)
 async def updateUser(newUser: schemas.UserUpdate, 
                      db: Session = Depends(database.get_db), 
                      current_user = Depends(oauth2.get_current_user)):
 
     return user.updateUser(newUser, db, current_user)
+
+
+@router.put("/update_pwd")
+async def updateUser(new_pwd: schemas.UserRePwd, 
+                     db: Session = Depends(database.get_db), 
+                     current_user = Depends(oauth2.get_current_user)):
+
+    return user.re_pwd(new_pwd, db, current_user)

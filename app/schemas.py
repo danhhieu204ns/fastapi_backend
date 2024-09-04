@@ -26,6 +26,9 @@ class UserUpdate(BaseModel):
     address: Optional[str] = None
     phone_number: Optional[str] = None
 
+class UserRePwd(BaseModel):
+    password: str
+
 class UserResponse(BaseModel):
     id: int
     email: EmailStr

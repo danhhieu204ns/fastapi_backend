@@ -70,3 +70,17 @@ def updateUser(newUser: schemas.UserUpdate,
     # db.commit()
     
     return user
+
+
+def re_pwd(new_pwd: schemas.UserRePwd, 
+           db: Session, 
+           current_user):
+    
+    user = db.query(models.User).filter(models.User.id == current_user.id)
+
+    new_pwd.password = utils.hash(new_pwd.password)
+
+    user.update(new_pwd.dict(), synchronize_session=False)
+    db.commit()
+
+    return {"message": "Succes!"}
