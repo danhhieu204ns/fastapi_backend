@@ -58,6 +58,7 @@ class Member(Base):
     group_id = Column(Integer, ForeignKey("groups.id", ondelete="CASCADE"), nullable=False)
     inviter_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     
+    info = relationship("User", foreign_keys=[user_id])
 
 class Post(Base):
     __tablename__ = "posts"

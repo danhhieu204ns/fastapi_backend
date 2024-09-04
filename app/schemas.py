@@ -32,6 +32,7 @@ class UserRePwd(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
+    name: str
     created_at: datetime
     
     class Config:
@@ -101,8 +102,8 @@ class MemberInviteResponse(BaseModel):
 
 class MemberResponse(BaseModel):
     id: int
-    user_id: int
     role: str
+    info: UserResponse
 
     class Config:
         from_attributes = True
