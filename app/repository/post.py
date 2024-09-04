@@ -93,23 +93,26 @@ def get_my_post(db: Session,
     return posts
 
 
-def getPost(id: int, 
-            db: Session,
-            current_user):
-
-    # post = db.query(models.Post).filter(models.Post.id == id).first()
-    post = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
-    post = post.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
-    post = post.filter(models.Post.id == id).first()
-
-    if not post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Not found post with {id}!")
-    if post.Post.owner_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f"Not alowed post with {id}!")
+def get_post_in_group(group_id: int, 
+                      db: Session,
+                      current_user):
     
-    return post
+    group = db.query(models.Group).filter(models.Group.id == group_id).first()
+    if not group:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Not found group with {id}!")
+    
+    member = db.query(models.Member).filter(models.Member.group_id == group_id, 
+                                            models.Member.user_id == current_user.id, 
+                                            models.Member.status == "accepted")
+    if not member:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f"Not in this group!")
+
+    posts = db.query(models.Post).filter(models.Post.group_id == group_id, 
+                                         models.Post.status == "accepted").all()
+    
+    return posts
 
 
 def create_post(post_create: schemas.PostCreate, 

@@ -23,6 +23,15 @@ router = APIRouter(
     # return post.get_posts(db)
 
 
+@router.get("/{group_id}", 
+            response_model=List[schemas.Postbase])
+async def get_post_in_group(group_id: int, 
+                            db: Session = Depends(get_db),
+                            current_user = Depends(oauth2.get_current_user)):
+    
+    return post.get_post_in_group(group_id, db, current_user)
+
+
 @router.get("/myposts", 
             response_model=List[schemas.Postbase])
 async def get_my_post(db: Session = Depends(get_db), 
@@ -32,15 +41,6 @@ async def get_my_post(db: Session = Depends(get_db),
                       current_user = Depends(oauth2.get_current_user)):
     
     return post.get_my_post(db, limit, skip, search, current_user)
-
-
-@router.get("/{id}", 
-            response_model=schemas.PostVoteResponse)
-async def get_post_in_group(id: int, 
-                  db: Session = Depends(get_db),
-                  current_user = Depends(oauth2.get_current_user)):
-    
-    return post.getPost(id, db, current_user)
 
 
 @router.post("/", 
