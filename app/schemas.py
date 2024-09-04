@@ -99,6 +99,14 @@ class MemberInviteResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class MemberResponse(BaseModel):
+    id: int
+    user_id: int
+    role: str
+
+    class Config:
+        from_attributes = True
+
 
 class MemberHandle(BaseModel):
     id: int

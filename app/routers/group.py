@@ -66,3 +66,11 @@ async def handle_member(member: schemas.MemberHandle,
     
     return group.handle_member(member, db, current_user)
 
+
+@router.get("/{group_id}/member",
+             response_model= List[schemas.MemberResponse])
+async def get_member(group_id: int,
+                     db: Session = Depends(database.get_db), 
+                     current_user = Depends(oauth2.get_current_user)):
+    
+    return group.get_member(group_id, db, current_user)

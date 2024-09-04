@@ -132,3 +132,25 @@ def handle_member(invite: schemas.MemberHandle,
     db.commit() 
     
     return member_query.first()
+
+
+def get_member(group_id: int,
+               db: Session, 
+               current_user):
+    
+    group = db.query(models.Group).filter(models.Group.id == group_id).first()
+    if not group:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail= "Not found this group!")
+    
+    member = db.query(models.Member).filter(models.Member.group_id == group_id, 
+                                            models.Member.user_id == current_user.id, 
+                                            models.Member.status == "accepted").first()
+    if not member:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                            detail= "Not in this group!")
+    
+    members = db.query(models.Member).filter(models.Member.group_id == group_id, 
+                                             models.Member.status == "accepted")
+    
+    return members
