@@ -1,6 +1,6 @@
 from fastapi import status, APIRouter, Depends
 from .. import schemas, database, oauth2
-from repository import group
+from ..repository import group
 from sqlalchemy.orm import Session
 from typing import List, Optional
 

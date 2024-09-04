@@ -35,8 +35,6 @@ def create_user(user: schemas.UserCreate,
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail=f"Password must contain at least one special character.")
     
-    # date_format = "%Y-%m-%d"
-    # age = utils.calculate_age(user.date_of_birth, date.today())
     user.password = utils.hash(user.password)
     newUser = models.User(**user.dict())
     db.add(newUser)
