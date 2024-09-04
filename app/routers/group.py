@@ -41,12 +41,12 @@ async def createGroup(group_info: schemas.GroupCreate,
 @router.put("/{group_id}", 
             response_model=schemas.GroupResponse, 
             status_code=status.HTTP_200_OK)
-async def update_group_name(group_id: int, 
+async def re_name(group_id: int, 
                             group_name: schemas.GroupCreate, 
                             db: Session = Depends(database.get_db), 
                             current_user = Depends(oauth2.get_current_user)):
 
-    return group(group_id, group_name, db, current_user)
+    return group.re_name(group_id, group_name, db, current_user)
 
 
 @router.post("/invite",

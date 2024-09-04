@@ -101,8 +101,7 @@ class MemberInviteResponse(BaseModel):
 
 
 class MemberHandle(BaseModel):
-    user_id: int
-    group_id: int
+    id: int
     status: str
 
 

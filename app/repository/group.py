@@ -45,7 +45,7 @@ def createGroup(group: schemas.GroupCreate,
     return new_group
 
 
-def update_group_name(group_id: int, 
+def re_name(group_id: int, 
                       group_name: schemas.GroupCreate, 
                       db: Session, 
                       current_user):
@@ -88,8 +88,9 @@ def invite_member(member: schemas.MemberInviteCreate,
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                             detail= f"Id = {member.user_id} has already exist in this group")
 
-    inviter = db.query(models.Member).filter(models.Member.user_id == current_user.id, 
-                                             models.Member.group_id == member.group_id)
+    inviter = db.query(models.Member).filter(models.Member.group_id == member.group_id,
+                                             models.Member.user_id == current_user.id, 
+                                             models.Member.status == "accepted")
     if not inviter.first():
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                             detail= f"You are not in this group")
@@ -109,24 +110,25 @@ def invite_member(member: schemas.MemberInviteCreate,
     return new_member
 
 
-def handle_member(member: schemas.MemberHandle,
+def handle_member(invite: schemas.MemberHandle,
                   db: Session, 
                   current_user):
 
-    admin = db.query(models.Member).filter(models.Member.user_id == current_user.id, 
-                                           models.Member.group_id == member.group_id, 
-                                           models.Member.role == "admin")
-    if not admin.first():
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
-                            detail= "Only admin can accept member!")
+    member_query = db.query(models.Member).filter(models.Member.id == invite.id)
+    member = member_query.first()
 
-    this_member = db.query(models.Member).filter(models.Member.user_id == member.user_id, 
-                                                 models.Member.group_id == member.group_id)
-    if not this_member.first():
+    if not member:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-                            detail= f"Not found this member")
+                            detail= "Not found invite!")
+
+    admin = db.query(models.Member).filter(models.Member.group_id == member.group_id,
+                                           models.Member.user_id == current_user.id, 
+                                           models.Member.role == "admin")
+    if not admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                            detail= "Only admin can handle member!")
     
-    this_member.update({models.Member.status: member.status}, synchronize_session=False)
+    member_query.update({models.Member.status: invite.status}, synchronize_session=False)
     db.commit() 
     
-    return this_member.first()
+    return member_query.first()
