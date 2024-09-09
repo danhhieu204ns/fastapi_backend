@@ -23,15 +23,6 @@ router = APIRouter(
     # return post.get_posts(db)
 
 
-@router.get("/{group_id}", 
-            response_model=List[schemas.Postbase])
-async def get_post_in_group(group_id: int, 
-                            db: Session = Depends(get_db),
-                            current_user = Depends(oauth2.get_current_user)):
-    
-    return post.get_post_in_group(group_id, db, current_user)
-
-
 @router.get("/myposts", 
             response_model=List[schemas.Postbase])
 async def get_my_post(db: Session = Depends(get_db), 
@@ -43,7 +34,17 @@ async def get_my_post(db: Session = Depends(get_db),
     return post.get_my_post(db, limit, skip, search, current_user)
 
 
-@router.post("/", 
+@router.get("/{group_id}", 
+            response_model=List[schemas.Postbase])
+async def get_post_in_group(group_id: int, 
+                            db: Session = Depends(get_db),
+                            current_user = Depends(oauth2.get_current_user)):
+    
+    return post.get_post_in_group(group_id, db, current_user)
+
+
+
+@router.post("/create", 
              status_code=status.HTTP_201_CREATED, 
              response_model=schemas.Postbase)
 async def create_post(post_create: schemas.PostCreate, 
@@ -51,6 +52,16 @@ async def create_post(post_create: schemas.PostCreate,
                      current_user = Depends(oauth2.get_current_user)):
 
     return post.create_post(post_create, db, current_user)
+
+
+@router.post("/handlepost", 
+             status_code=status.HTTP_201_CREATED, 
+             response_model=schemas.Postbase)
+async def handle_post(post_status: schemas.PostHandle, 
+                      db: Session = Depends(get_db), 
+                      current_user = Depends(oauth2.get_current_user)):
+
+    return post.handle_post(post_status, db, current_user)
 
 
 @router.delete("/{id}", 
@@ -70,6 +81,15 @@ async def updatePost(id: int,
                      current_user = Depends(oauth2.get_current_user)):
     
     return post.updatePost(id, newPost, db, current_user)
+
+
+@router.post("/handlepost/{post_id}")
+async def handle_post(post_id: int, 
+                      status: str, 
+                      db: Session = Depends(get_db), 
+                      current_user = Depends(oauth2.get_current_user)):
+    
+    return post.handle_post(post_id, status, db, current_user)
 
 
 @router.post("/upload/")

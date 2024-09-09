@@ -87,6 +87,10 @@ class PostCreate(BaseModel):
     group_id: int
     status: str
 
+class PostHandle(BaseModel):
+    id: int
+    status: str
+
 
 class Postbase(BaseModel):
     id: int

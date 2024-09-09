@@ -82,10 +82,10 @@ from fastapi.responses import FileResponse
 
 
 def get_my_post(db: Session, 
-             limit: int, 
-             skip: int, 
-             search: Optional[str], 
-             current_user):
+                limit: int, 
+                skip: int, 
+                search: Optional[str], 
+                current_user):
     
     posts = db.query(models.Post).filter(models.Post.title.contains(search), 
                                          models.Post.user_id == current_user.id).limit(limit).offset(skip).all()
@@ -116,8 +116,8 @@ def get_post_in_group(group_id: int,
 
 
 def create_post(post_create: schemas.PostCreate, 
-               db: Session, 
-               current_user):
+                db: Session, 
+                current_user):
     
     group = db.query(models.Group).filter(models.Group.id == post_create.group_id).first()
     if not group:
@@ -138,6 +138,30 @@ def create_post(post_create: schemas.PostCreate,
     db.commit()
 
     return newPost
+
+
+def handle_post(post_status: schemas.PostHandle, 
+                db: Session, 
+                current_user):
+    
+    post_query = db.query(models.Post).filter(models.Post.id == post_status.id)
+    post = post_query.first()
+
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail= "Not found post!")
+
+    admin = db.query(models.Member).filter(models.Member.group_id == post.group_id,
+                                           models.Member.user_id == current_user.id, 
+                                           models.Member.role == "admin")
+    if not admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                            detail= "Only admin can handle member!")
+    
+    post_query.update({models.Member.status: post_status.status}, synchronize_session=False)
+    db.commit() 
+    
+    return post_query.first()
 
 
 def deletePost(id: int, 
