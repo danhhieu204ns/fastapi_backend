@@ -132,3 +132,15 @@ class VoteList(BaseModel):
     class Config:
         from_attributes = True
 
+
+class CommentCreate(BaseModel):
+    content: str
+    post_id: str
+
+
+class CommentResponse(BaseModel):
+    content: str
+    user: UserResponse
+    
+    class Config:
+        from_attributes = True
