@@ -73,14 +73,14 @@ async def delete_post(post_id: int,
     return post.delete_post(post_id, db, current_user)
 
 
-@router.put("/{id}", 
+@router.put("/update/{post_id}", 
             response_model=schemas.Postbase)
-async def updatePost(id: int, 
-                     newPost: schemas.PostCreate, 
-                     db: Session = Depends(get_db), 
-                     current_user = Depends(oauth2.get_current_user)):
+async def update_post(post_id: int, 
+                      newPost: schemas.PostUpdate, 
+                      db: Session = Depends(get_db), 
+                      current_user = Depends(oauth2.get_current_user)):
     
-    return post.updatePost(id, newPost, db, current_user)
+    return post.update_post(post_id, newPost, db, current_user)
 
 
 @router.post("/handlepost/{post_id}")

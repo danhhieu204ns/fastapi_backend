@@ -186,22 +186,24 @@ def delete_post(post_id: int,
     return {"message": "Succes!"}
 
 
-def updatePost(id: int, 
-               newPost: schemas.PostCreate, 
-               db: Session, 
-               current_user):
+def update_post(post_id: int, 
+                newPost: schemas.PostUpdate, 
+                db: Session, 
+                current_user):
     
-    post = db.query(models.Post).filter(models.Post.id == id)
-    if not post.first():
+    post_query = db.query(models.Post).filter(models.Post.id == post_id, 
+                                              models.Post.status == "accepted")
+    post = post_query.first()
+    if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Not found post with {id}!")
-    if post.first().user_id != current_user.id:
+                            detail=f"Not found post with {post_id}!")
+    if post.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f"Not alowwed post with {id}!")
-    post.update(newPost.dict(), synchronize_session=False)
+                            detail=f"Not alowwed post with {post_id}!")
+    post_query.update(newPost.dict(), synchronize_session=False)
     db.commit()
     
-    return post.first()
+    return post
 
 
 async def upload_file(file: UploadFile,

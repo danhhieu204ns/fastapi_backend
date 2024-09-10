@@ -86,6 +86,13 @@ class PostCreate(BaseModel):
     privacy: str
     group_id: int
     status: str
+    
+
+class PostUpdate(BaseModel):
+    title: str
+    content: str
+    privacy: str
+    
 
 class PostHandle(BaseModel):
     id: int
@@ -97,6 +104,7 @@ class Postbase(BaseModel):
     title: str
     content: str
     status: Optional[str]
+    privacy: str
 
     owner: UserResponse
     group: GroupResponse
