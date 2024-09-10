@@ -5,11 +5,11 @@ from ..repository import vote
 
 
 router = APIRouter(
-    prefix="/vote",
+    prefix="/post",
     tags=["Votes"]
 )
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/vote", status_code=status.HTTP_201_CREATED)
 async def handle_vote(vote_info: schemas.VoteCreate, 
                       db: Session = Depends(database.get_db), 
                       current_user: int = Depends(oauth2.get_current_user)):
