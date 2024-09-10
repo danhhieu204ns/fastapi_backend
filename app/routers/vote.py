@@ -1,5 +1,5 @@
-from fastapi import status, HTTPException, Depends, APIRouter
-from .. import schemas, database, models, oauth2
+from fastapi import status, Depends, APIRouter
+from .. import schemas, database, oauth2
 from sqlalchemy.orm import Session
 from ..repository import vote
 
