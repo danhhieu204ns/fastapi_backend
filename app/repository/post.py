@@ -168,7 +168,8 @@ def delete_post(post_id: int,
                 db: Session, 
                 current_user):
     
-    post_query = db.query(models.Post).filter(models.Post.id == post_id)
+    post_query = db.query(models.Post).filter(models.Post.id == post_id, 
+                                              models.Post.status == "accepted")
     post = post_query.first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
