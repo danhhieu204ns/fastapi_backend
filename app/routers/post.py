@@ -34,7 +34,7 @@ async def get_my_post(db: Session = Depends(get_db),
     return post.get_my_post(db, limit, skip, search, current_user)
 
 
-@router.get("/{group_id}", 
+@router.get("/getpost/{group_id}", 
             response_model=List[schemas.Postbase])
 async def get_post_in_group(group_id: int, 
                             db: Session = Depends(get_db),
@@ -64,7 +64,7 @@ async def handle_post(post_status: schemas.PostHandle,
     return post.handle_post(post_status, db, current_user)
 
 
-@router.delete("/{id}", 
+@router.delete("/delete/{id}", 
                status_code=status.HTTP_204_NO_CONTENT)
 async def deletePost(id: int, 
                      db: Session = Depends(get_db), 
