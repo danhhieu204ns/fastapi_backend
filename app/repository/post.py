@@ -109,8 +109,13 @@ def get_post_in_group(group_id: int,
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not in this group!")
 
-    posts = db.query(models.Post).filter(models.Post.group_id == group_id, 
-                                         models.Post.status == "accepted").all()
+    # posts = db.query(models.Post).filter(models.Post.group_id == group_id, 
+    #                                      models.Post.status == "accepted").all()
+    
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
+    posts = posts.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
+    posts = posts.filter(models.Post.group_id == group_id, 
+                         models.Post.status == "accepted").all()
     
     return posts
 
