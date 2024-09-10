@@ -124,6 +124,11 @@ class PostVoteResponse(BaseModel):
 class VoteCreate(BaseModel):
     post_id: int
     dir: int
+    
+    
+class VoteList(BaseModel):
+    user: UserResponse
 
-
+    class Config:
+        from_attributes = True
 
