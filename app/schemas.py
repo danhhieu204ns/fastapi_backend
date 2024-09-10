@@ -135,10 +135,11 @@ class VoteList(BaseModel):
 
 class CommentCreate(BaseModel):
     content: str
-    post_id: str
+    post_id: int
 
 
 class CommentResponse(BaseModel):
+    id: int
     content: str
     user: UserResponse
     

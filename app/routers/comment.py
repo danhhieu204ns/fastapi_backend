@@ -19,3 +19,14 @@ async def get_comment(post_id: int,
                       current_user = Depends(oauth2.get_current_user)):
     
     return comment.get_comment(post_id, db, current_user)
+
+
+@router.post("/addcomment", 
+            status_code=status.HTTP_201_CREATED, 
+            response_model=schemas.CommentResponse)
+async def add_comment(new_comment: schemas.CommentCreate, 
+                      db: Session = Depends(get_db), 
+                      current_user = Depends(oauth2.get_current_user)):
+    
+    return comment.add_comment(new_comment, db, current_user)
+

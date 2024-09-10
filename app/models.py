@@ -60,6 +60,7 @@ class Member(Base):
     
     info = relationship("User", foreign_keys=[user_id])
 
+
 class Post(Base):
     __tablename__ = "posts"
 
