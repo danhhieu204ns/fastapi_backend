@@ -164,20 +164,25 @@ def handle_post(post_status: schemas.PostHandle,
     return post_query.first()
 
 
-def deletePost(id: int, 
-               db: Session, 
-               current_user):
+def delete_post(post_id: int, 
+                db: Session, 
+                current_user):
     
-    post = db.query(models.Post).filter(models.Post.id == id)
-    if not post.first():
+    post_query = db.query(models.Post).filter(models.Post.id == post_id)
+    post = post_query.first()
+    if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Not found post with {id}!")
-    if post.first().owner_id != current_user.id:
+                            detail=f"Not found post with {post_id}!")
+        
+    admin = db.query(models.Member).filter(models.Member.id == current_user.id, 
+                                           models.Member.group_id == post.group_id, 
+                                           models.Member.role == "admin").first()    
+    if (not admin) and post.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f"Not alowed post with {id}!")
-    post.delete(synchronize_session=False)
+                            detail=f"Not permission!")
+    post_query.update({"status": "deleted"}, 
+                      synchronize_session=False)
     db.commit()
-
     return {"message": "Succes!"}
 
 

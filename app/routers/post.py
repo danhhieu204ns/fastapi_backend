@@ -64,13 +64,13 @@ async def handle_post(post_status: schemas.PostHandle,
     return post.handle_post(post_status, db, current_user)
 
 
-@router.delete("/delete/{id}", 
+@router.delete("/delete/{post_id}", 
                status_code=status.HTTP_204_NO_CONTENT)
-async def deletePost(id: int, 
-                     db: Session = Depends(get_db), 
-                     current_user = Depends(oauth2.get_current_user)):
+async def delete_post(post_id: int, 
+                      db: Session = Depends(get_db), 
+                      current_user = Depends(oauth2.get_current_user)):
     
-    return post.deletePost(id, db, current_user)
+    return post.delete_post(post_id, db, current_user)
 
 
 @router.put("/{id}", 
