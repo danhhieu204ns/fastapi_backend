@@ -35,7 +35,7 @@ async def get_my_post(db: Session = Depends(get_db),
 
 
 @router.get("/getpost/{group_id}", 
-            response_model=List[schemas.PostVoteResponse])
+            response_model=List[schemas.PostResponse])
 async def get_post_in_group(group_id: int, 
                             db: Session = Depends(get_db),
                             current_user = Depends(oauth2.get_current_user)):

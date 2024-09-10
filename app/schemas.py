@@ -145,3 +145,12 @@ class CommentResponse(BaseModel):
     
     class Config:
         from_attributes = True
+        
+        
+class PostResponse(BaseModel):
+    Post: Postbase
+    Vote: int
+    Comment: int
+
+    class Config:
+        from_attributes = True

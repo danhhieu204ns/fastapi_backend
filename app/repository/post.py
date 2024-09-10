@@ -112,8 +112,21 @@ def get_post_in_group(group_id: int,
     # posts = db.query(models.Post).filter(models.Post.group_id == group_id, 
     #                                      models.Post.status == "accepted").all()
     
-    posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
-    posts = posts.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
+    # posts = db.query(models.Post, func.count(models.Vote.post_id).label('vote'))
+    # posts = posts.join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id)
+    # posts = posts.filter(models.Post.group_id == group_id, 
+    #                      models.Post.status == "accepted").all()
+    
+    posts = db.query(models.Post, 
+                     func.count(models.Vote.post_id).label('Vote'), 
+                     func.count(models.Comment.post_id).label('Comment'))
+    posts = posts.join(models.Vote, 
+                       models.Post.id == models.Vote.post_id,
+                       isouter=True)
+    posts = posts.join(models.Comment, 
+                       models.Post.id == models.Comment.post_id,
+                       isouter=True)
+    posts = posts.group_by(models.Post.id)
     posts = posts.filter(models.Post.group_id == group_id, 
                          models.Post.status == "accepted").all()
     
